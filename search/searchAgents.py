@@ -295,15 +295,24 @@ class CornersProblem(search.SearchProblem):
         Returns the start state (in your state space, not the full Pacman state
         space)
         """
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        # A game state includes Pacman's current position and relevant data on
+        # which corners have not yet been visited.
+        return (self.startingPosition, self.corners)
 
     def isGoalState(self, state: Any):
         """
         Returns whether this search state is a goal state of the problem.
         """
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        # Get all unvisited corners
+        # If there is one or more unvisited corners, return False
+        # If there are no unvisited corners, return true
+        #print(state[0])
+        #print(state[1])
+        cornerList = state[1]
+        for corner in cornerList:
+            if corner:
+                return False
+        return True
 
     def getSuccessors(self, state: Any):
         """
@@ -325,8 +334,16 @@ class CornersProblem(search.SearchProblem):
             #   nextx, nexty = int(x + dx), int(y + dy)
             #   hitsWall = self.walls[nextx][nexty]
 
-            "*** YOUR CODE HERE ***"
-
+            x,y = state[0]
+            cornerList = list(state[1])
+            dx, dy = Actions.directionToVector(action)
+            nextx, nexty = int(x + dx), int(y + dy)
+            if not self.walls[nextx][nexty]:
+                nextState = (nextx, nexty)
+                for c in range (0, 4):
+                    if nextState == cornerList[c]:
+                        cornerList[c] = None
+                successors.append([tuple([nextState, cornerList]), action, 1])
         self._expanded += 1 # DO NOT CHANGE
         return successors
 
@@ -361,7 +378,9 @@ def cornersHeuristic(state: Any, problem: CornersProblem):
     corners = problem.corners # These are the corner coordinates
     walls = problem.walls # These are the walls of the maze, as a Grid (game.py)
 
-    "*** YOUR CODE HERE ***"
+    cost = 0
+    left = corners
+
     return 0 # Default to trivial solution
 
 

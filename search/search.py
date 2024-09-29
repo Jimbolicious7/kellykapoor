@@ -114,6 +114,7 @@ def breadthFirstSearch(problem: SearchProblem) -> List[Directions]:
 
     while not queue.isEmpty():
         node, path, cost = queue.pop()
+        print(node)
         if problem.isGoalState(node):
             return path
         for node2, path2, cost2 in problem.getSuccessors(node):
