@@ -529,25 +529,25 @@ def foodHeuristic(state: Tuple[Tuple, List[List]], problem: FoodSearchProblem):
     lowBound = food[0]
     if len(food) == 1:
         return abs(position[0] - lowBound[0]) + abs(position[1] - lowBound[1])
-    newCost = 0
     cost = 0
-    costArr = []
-    newCostArr = []
+    arr = []
+    arr2 = []
     highBound = food[0]
     lowCost = 0
     for point in food:
-        cost = abs(position[0] - point[0]) + abs(position[1] - point[1])
-        costArr.append(cost)
-        lowCost = min(costArr)
-    minI = costArr.index(lowCost)
-    lowBound = food[minI]
+        cost = abs(position[1] - point[1]) + abs(position[0] - point[0])
+        arr.append(cost)
+        lowCost = min(arr)
+    minCostIndex = arr.index(lowCost)
+    lowBound = food[minCostIndex]
     for point in food:
-        cost = abs(lowBound[0] - point[0]) + abs(lowBound[1] - point[1])
-        newCostArr.append(cost)
-        highCost = max(newCostArr)
-    maxI = newCostArr.index(highCost)
-    highBound = food[maxI]
-    return abs(lowBound[0] - highBound[0]) + abs(lowBound[1] - highBound[1]) + abs(position[0] - lowBound[0]) + abs(position[1] - lowBound[1])
+        cost = abs(lowBound[1] - point[1]) + abs(lowBound[0] - point[0])
+        arr2.append(cost)
+        highCost = max(arr2)
+    maxCostIndex = arr2.index(highCost)
+    highBound = food[maxCostIndex]
+    return abs(lowBound[0] - highBound[0]) + abs(position[0] - lowBound[0]) + abs(lowBound[1] - highBound[1]) + abs(position[1] - lowBound[1])
+
 
 
 class ClosestDotSearchAgent(SearchAgent):
