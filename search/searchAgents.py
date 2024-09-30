@@ -504,7 +504,50 @@ def foodHeuristic(state: Tuple[Tuple, List[List]], problem: FoodSearchProblem):
     """
     position, foodGrid = state
     "*** YOUR CODE HERE ***"
-    return 0
+    """
+    #Create a list of coordinates of remaining food
+    foodRemain = foodGrid.asList()
+    #Initialize the total cost to zero
+    cost = 0
+    #Set pacman's current position to position
+    current = position
+    #While there is still food in the world
+    while foodRemain:
+        #Find the shortest path to the nearest food and get the coordinates of that food
+        heuristic_cost, food = min([(util.manhattanDistance(current, food), food) for food in foodRemain])
+        #Remove the selected food from the list of remaining food
+        foodRemain.remove(food)
+        #Set pacman's location to the location of the last food he ate
+        current = food
+        #Add the cost of going to that food to the total cost
+        cost += heuristic_cost
+    return cost"""
+
+    food = foodGrid.asList()
+    if not food:
+        return 0
+    lowBound = food[0]
+    if len(food) == 1:
+        return abs(position[0] - lowBound[0]) + abs(position[1] - lowBound[1])
+    newCost = 0
+    cost = 0
+    costArr = []
+    newCostArr = []
+    highBound = food[0]
+    lowCost = 0
+    for point in food:
+        cost = abs(position[0] - point[0]) + abs(position[1] - point[1])
+        costArr.append(cost)
+        lowCost = min(costArr)
+    minI = costArr.index(lowCost)
+    lowBound = food[minI]
+    for point in food:
+        cost = abs(lowBound[0] - point[0]) + abs(lowBound[1] - point[1])
+        newCostArr.append(cost)
+        highCost = max(newCostArr)
+    maxI = newCostArr.index(highCost)
+    highBound = food[maxI]
+    return abs(lowBound[0] - highBound[0]) + abs(lowBound[1] - highBound[1]) + abs(position[0] - lowBound[0]) + abs(position[1] - lowBound[1])
 
 
 class ClosestDotSearchAgent(SearchAgent):
