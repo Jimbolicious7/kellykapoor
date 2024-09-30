@@ -324,28 +324,32 @@ class CornersProblem(search.SearchProblem):
             state, 'action' is the action required to get there, and 'stepCost'
             is the incremental cost of expanding to that successor
         """
-
         successors = []
-        for action in [Directions.NORTH, Directions.SOUTH, Directions.EAST, Directions.WEST]:
-            # Add a successor state to the successor list if the action is legal
-            # Here's a code snippet for figuring out whether a new position hits a wall:
-            #   x,y = currentPosition
-            #   dx, dy = Actions.directionToVector(action)
-            #   nextx, nexty = int(x + dx), int(y + dy)
-            #   hitsWall = self.walls[nextx][nexty]
+        current_position, corners_left = state
 
-            x,y = state[0]
-            cornerList = list(state[1])
+     
+        if not isinstance(corners_left, tuple):
+            corners_left = tuple(corners_left)
+
+        for action in [Directions.NORTH, Directions.SOUTH, Directions.EAST, Directions.WEST]:
+            x, y = current_position
             dx, dy = Actions.directionToVector(action)
-            nextx, nexty = int(x + dx), int(y + dy)
-            if not self.walls[nextx][nexty]:
-                nextState = (nextx, nexty)
-                for c in range (0, 4):
-                    if nextState == cornerList[c]:
-                        cornerList[c] = None
-                successors.append([tuple([nextState, cornerList]), action, 1])
-        self._expanded += 1 # DO NOT CHANGE
+            next_x, next_y = int(x + dx), int(y + dy)
+            if not self.walls[next_x][next_y]:
+                next_position = (next_x, next_y)
+                # Update corners_left if necessary
+                if next_position in corners_left:
+                    new_corners_left = tuple(c for c in corners_left if c != next_position)
+                else:
+                    new_corners_left = corners_left  # No change
+                successor_state = (next_position, new_corners_left)
+                cost = 1  # Assuming uniform cost
+                successors.append((successor_state, action, cost))
+        self._expanded += 1  # Do not remove this line
         return successors
+        
+
+
 
     def getCostOfActions(self, actions):
         """
@@ -375,14 +379,42 @@ def cornersHeuristic(state: Any, problem: CornersProblem):
     shortest path from the state to a goal of the problem; i.e.  it should be
     admissible.
     """
-    corners = problem.corners # These are the corner coordinates
-    walls = problem.walls # These are the walls of the maze, as a Grid (game.py)
 
-    cost = 0
-    left = corners
+    corners = problem.corners  # The corner coordinates
+    position, corners_left = state
 
-    return 0 # Default to trivial solution
+    # Validate the position
+    if position is None:
+        raise ValueError("Position is None")
 
+    # Ensure corners_left is a tuple
+    if corners_left is None:
+        corners_left = ()
+    elif not isinstance(corners_left, tuple):
+        corners_left = tuple(corners_left)
+
+    # Ensure that corners_left contains only valid corners
+    corners_left = tuple(corner for corner in corners_left if corner in corners)
+
+    # Manhattan distance function
+    def manhattan_dist(xy1, xy2):
+        return abs(xy1[0] - xy2[0]) + abs(xy1[1] - xy2[1])
+
+    total_dist = 0
+    next_point = position
+
+    # Calculate the heuristic based on the remaining corners
+    while corners_left:
+        # Calculate distances to remaining corners
+        dists = [(manhattan_dist(next_point, c), c) for c in corners_left]
+
+        # Find the nearest corner
+        dist, nearest = min(dists, key=lambda elem: elem[0])
+        total_dist += dist
+        corners_left = tuple(c for c in corners_left if c != nearest)
+        next_point = nearest
+
+    return total_dist
 
 
 class AStarCornersAgent(SearchAgent):
