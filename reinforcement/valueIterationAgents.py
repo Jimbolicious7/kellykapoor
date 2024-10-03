@@ -124,6 +124,7 @@ class ValueIterationAgent(ValueEstimationAgent):
             print("Action: " + str(action))
             if self.getQValue(self, state, action) > actionVal:
                 bestAction = action
+                actionval = self.getQValue(self, state, action)
         return bestAction
 
     def getPolicy(self, state):
