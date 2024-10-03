@@ -72,9 +72,9 @@ class ValueIterationAgent(ValueEstimationAgent):
             #reset (new episode)
             tempValues = self.values
             for state in self.mdp.getStates():
-                highestActionValue = self.getQValue(self, state, self.mdp.getPossibleActions(self, state)[0])
-                for action in self.mdp.getPossibleActions(self, state):
-                    actionValue = self.getQValue(self, state, action)
+                highestActionValue = self.getQValue(state, self.mdp.getPossibleActions(state)[0])
+                for action in self.mdp.getPossibleActions(state):
+                    actionValue = self.getQValue(state, action)
                     if actionValue > highestActionValue:
                         highestActionValue = actionValue
                 tempValues[state] = highestActionValue
@@ -96,12 +96,12 @@ class ValueIterationAgent(ValueEstimationAgent):
         """
         "*** YOUR CODE HERE ***"
         qVal = 0
-        for tsap in self.mdp.getTransitionStatesAndProbs(self, state, action):
+        for tsap in self.mdp.getTransitionStatesAndProbs(state, action):
             #tState is s'
             tState = tsap[0]
             prob = tsap[1]
             reward = self.mdp.getReward(state, action, tState)
-            qVal += (prob) * (reward + self.values[tState])
+            qVal += (prob) * (reward + self.discount * self.values[tState])
         return qVal
 
     def computeActionFromValues(self, state):
@@ -116,13 +116,14 @@ class ValueIterationAgent(ValueEstimationAgent):
         "*** YOUR CODE HERE ***"
         if self.mdp.isTerminal(state):
             return None
-        actionVal = 0
+        actionVal = -99999
         bestAction = self.mdp.getPossibleActions(state)[0]
         for action in self.mdp.getPossibleActions(state):
             print("Self: " + str(self))
-            print("State: " + str(state))
-            print("Action: " + str(action))
-            if self.getQValue(self, state, action) > actionVal:
+            print("State: " + str(len(state)))
+            print("Action: " + str(len(action)))
+            if self.getQValue(state, action) > actionVal:
+                actionVal = self.getQValue(state, action)
                 bestAction = action
         return bestAction
 
