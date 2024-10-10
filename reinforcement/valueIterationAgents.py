@@ -68,11 +68,13 @@ class ValueIterationAgent(ValueEstimationAgent):
         for state in self.mdp.getStates():
             self.values[state] = 0
         for i in range(self.iterations):
-            #iterate
-            #reset (new episode)
             tempValues = self.values
             for state in self.mdp.getStates():
-                highestActionValue = self.getQValue(state, self.mdp.getPossibleActions(state)[0])
+                print("STATE: " + str(state))
+                if str(state) != "TERMINAL_STATE":
+                    highestActionValue = self.getQValue(state, self.mdp.getPossibleActions(state)[0])
+                else:
+                    highestActionValue = 0
                 for action in self.mdp.getPossibleActions(state):
                     actionValue = self.getQValue(state, action)
                     if actionValue > highestActionValue:
@@ -120,8 +122,8 @@ class ValueIterationAgent(ValueEstimationAgent):
         bestAction = self.mdp.getPossibleActions(state)[0]
         for action in self.mdp.getPossibleActions(state):
             print("Self: " + str(self))
-            print("State: " + str(len(state)))
-            print("Action: " + str(len(action)))
+            print("State: " + str(state))
+            print("Action: " + str(action))
             if self.getQValue(state, action) > actionVal:
                 actionVal = self.getQValue(state, action)
                 bestAction = action
