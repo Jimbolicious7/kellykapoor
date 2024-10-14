@@ -65,22 +65,23 @@ class ValueIterationAgent(ValueEstimationAgent):
           value iteration, V_k+1(...) depends on V_k(...)'s.
         """
         "*** YOUR CODE HERE ***"
-        for state in self.mdp.getStates():
-            self.values[state] = 0
+        
+        mdp = self.mdp
+        discount = self.discount
+        iterations = self.iterations
+
         for i in range(self.iterations):
-            tempValues = self.values
-            for state in self.mdp.getStates():
-                print("STATE: " + str(state))
-                if str(state) != "TERMINAL_STATE":
-                    highestActionValue = self.getQValue(state, self.mdp.getPossibleActions(state)[0])
-                else:
-                    highestActionValue = 0
-                for action in self.mdp.getPossibleActions(state):
-                    actionValue = self.getQValue(state, action)
-                    if actionValue > highestActionValue:
-                        highestActionValue = actionValue
-                tempValues[state] = highestActionValue
-            self.values = tempValues
+          tempValues = self.values.copy() 
+
+          for state in mdp.getStates(): #loops over all the states in the MDP 
+            qState = util.Counter()
+            
+            for action in mdp.getPossibleActions(state):
+              qState[action] = self.computeQValueFromValues(state, action)
+            
+            tempValues[state] = qState[qState.argMax()]
+
+          self.values = tempValues
         #print("# Iterations: " + str(self.iterations))
         #print("MDP states: " + str(self.mdp.getStates()))
         #print("Values: " + str(self.values))
@@ -97,14 +98,18 @@ class ValueIterationAgent(ValueEstimationAgent):
           value function stored in self.values.
         """
         "*** YOUR CODE HERE ***"
-        qVal = 0
-        for tsap in self.mdp.getTransitionStatesAndProbs(state, action):
-            #tState is s'
-            tState = tsap[0]
-            prob = tsap[1]
-            reward = self.mdp.getReward(state, action, tState)
-            qVal += (prob) * (reward + self.discount * self.values[tState])
-        return qVal
+        
+        mdp = self.mdp #initialize
+        values = self.values #initialize
+        discount = self.discount #initialize
+        tsap = mdp.getTransitionStatesAndProbs(state, action) #retrieves the possible next states, corresponding prob when taking action
+        tState = util.Counter()  #store the calculations in transition probabilities, rewards, and future value
+        
+        for (nextState, prob) in tsap:
+          R = mdp.getReward(state, action, nextState)
+          tState[nextState] = prob * (R + discount * self.getValue(nextState))
+
+        return tState.totalCount()
 
     def computeActionFromValues(self, state):
         """
@@ -116,17 +121,17 @@ class ValueIterationAgent(ValueEstimationAgent):
           terminal state, you should return None.
         """
         "*** YOUR CODE HERE ***"
-        if self.mdp.isTerminal(state):
-            return None
-        actionVal = -99999
-        bestAction = self.mdp.getPossibleActions(state)[0]
-        for action in self.mdp.getPossibleActions(state):
-            print("Self: " + str(self))
-            print("State: " + str(state))
-            print("Action: " + str(action))
-            if self.getQValue(state, action) > actionVal:
-                actionVal = self.getQValue(state, action)
-                bestAction = action
+        
+        mdp = self.mdp #initialize 
+        bestAction = None
+        bestq = float('-inf') #tracks the highest Q-value 
+
+        for action in mdp.getPossibleActions(state):
+          qValueForAction = self.computeQValueFromValues(state, action) 
+          if qValueForAction > bestq:
+            bestq = qValueForAction
+            bestAction = action
+
         return bestAction
 
     def getPolicy(self, state):
