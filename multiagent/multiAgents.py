@@ -75,8 +75,18 @@ class ReflexAgent(Agent):
         newScaredTimes = [ghostState.scaredTimer for ghostState in newGhostStates]
 
         "*** YOUR CODE HERE ***"
-        
-        return successorGameState.getScore()
+        curFood = currentGameState.getFood().count()
+        if len(newFood.asList()) == curFood:
+            score = 99999
+            for food in newFood.asList():
+                if manhattanDistance(food, newPos) < score:
+                    score = manhattanDistance(food, newPos)
+        else:
+            score = 0
+        for ghost in newGhostStates:
+            score += 4 ** (2 - manhattanDistance(ghost.getPosition(), newPos))
+        score = 99999 - score
+        return score
 
 def scoreEvaluationFunction(currentGameState: GameState):
     """
@@ -137,7 +147,24 @@ class MinimaxAgent(MultiAgentSearchAgent):
         Returns whether or not the game state is a losing state
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        if gameState.isWin() or gameState.isLose():
+            return Directions.STOP
+        movesList = gameState.getLegalActions()
+        agentIndex = gameState.getNumAgents()
+        value = -99999
+        move = Directions.STOP
+        for action in movesList:
+            nextState = gameState.generateSuccessor(0, action)
+            if nextState.isWin():
+                return action
+            i = 1
+            for i in range(agentIndex):
+                for gAction in gameState.getLegalActions(i):
+                    score = self.evaluationFunction(gameState.generateSuccessor(i, gAction))
+                    if score > value:
+                        value = score
+                        move = action
+        return move
 
 class AlphaBetaAgent(MultiAgentSearchAgent):
     """
