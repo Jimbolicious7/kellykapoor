@@ -149,22 +149,45 @@ class MinimaxAgent(MultiAgentSearchAgent):
         "*** YOUR CODE HERE ***"
         if gameState.isWin() or gameState.isLose():
             return Directions.STOP
-        movesList = gameState.getLegalActions()
-        agentIndex = gameState.getNumAgents()
+        movesList = gameState.getLegalActions(0)
+        agentIndex = gameState.getNumAgents() - 1
         value = -99999
         move = Directions.STOP
         for action in movesList:
             nextState = gameState.generateSuccessor(0, action)
             if nextState.isWin():
                 return action
-            i = 1
-            for i in range(agentIndex):
-                for gAction in gameState.getLegalActions(i):
-                    score = self.evaluationFunction(gameState.generateSuccessor(i, gAction))
-                    if score > value:
-                        value = score
-                        move = action
+            tempVal = self.gMove(nextState, agentIndex, 1)
+            if tempVal > value:
+                value = tempVal
+                move = action
         return move
+
+    def aMove(self, gameState: GameState, depth):
+        if gameState.isWin() or gameState.isLose():
+            return self.evaluationFunction(gameState)
+        movesList = gameState.getLegalActions(0)
+        stateList = [gameState.generateSuccessor(0, action) for action in movesList]
+        agentIndex = gameState.getNumAgents() -1
+        values = [self.gMove(move, agentIndex, depth + 1) for move in stateList]
+        return max(values)
+
+    def gMove(self, gameState: GameState, gNum, depth):
+        if gameState.isWin() or gameState.isLose():
+            return self.evaluationFunction(gameState)
+        movesList = gameState.getLegalActions(gNum)
+        if len(movesList) == 0:
+            return self.evaluationFunction(gameState)
+        nextStates = [gameState.generateSuccessor(gNum, action) for action in movesList]
+        remain = gNum - 1
+        if remain == 0:
+            if depth == self.depth:
+                values = [self.evaluationFunction(move) for move in nextStates]
+            else:
+                values = [self.aMove(move, depth) for move in nextStates]
+        else:
+            values = [self.gMove(move, remain, depth) for move in nextStates]
+        return min(values)
 
 class AlphaBetaAgent(MultiAgentSearchAgent):
     """
