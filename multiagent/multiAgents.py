@@ -269,7 +269,7 @@ def betterEvaluationFunction(currentGameState: GameState):
     Find number of available capsules
     Return a value which is near the evaluation function for the state, but it is increased slightly
     if Pacman is closer to a pellet, and is decreased slightly if Pacman is near to a ghost and if
-    there are more capsules
+    there are more capsules (to see if Pacman eats a capsule)
     """
     "*** YOUR CODE HERE ***"
     newPos = currentGameState.getPacmanPosition()
