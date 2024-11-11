@@ -151,13 +151,15 @@ class MinimaxAgent(MultiAgentSearchAgent):
             if gameState.isLose() or gameState.isWin() or depth == self.depth:
                 return self.evaluationFunction(gameState)
             if index == 0:
-                return max(minimax(1, depth, gameState.generateSuccessor(index, state)) for state in gameState.getLegalActions(index))
+                maxOfMin = max(minimax(1, depth, gameState.generateSuccessor(index, state)) for state in gameState.getLegalActions(index))
+                return maxOfMin
             else:
                 next = index + 1
                 if gameState.getNumAgents() == next:
                     next = 0
                     depth += 1
-                return min(minimax(next, depth, gameState.generateSuccessor(index, state)) for state in gameState.getLegalActions(index))
+                minOfMin = min(minimax(next, depth, gameState.generateSuccessor(index, state)) for state in gameState.getLegalActions(index))
+                return minOfMin
 
         bigNum = float('-inf')
         move = Directions.STOP
@@ -194,7 +196,8 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
                 next = 0
                 depth += 1
             for state in game_state.getLegalActions(index):
-                bigNum = min(bigNum, alphabeta(next, depth, game_state.generateSuccessor(index, state), alpha, beta))
+                abcheck = alphabeta(next, depth, game_state.generateSuccessor(index, state), alpha, beta)
+                bigNum = min(bigNum, abcheck)
                 if bigNum < alpha:
                     return bigNum
                 beta = min(beta, bigNum)
@@ -288,7 +291,9 @@ def betterEvaluationFunction(currentGameState: GameState):
         if ghostDist <= 1:
             danger += 1
     capsules = len(currentGameState.getCapsules())
-    return (1 / float(minDist)) + currentGameState.getScore() - (1 / float(totalGhostDist)) - danger - capsules
+    minDistReciprocal = (1 / float(minDist))
+    ghostDistReciprocal = (1 / float(totalGhostDist))
+    return minDistReciprocal + currentGameState.getScore() - ghostDistReciprocal - danger - capsules
 
 
 # Abbreviation
