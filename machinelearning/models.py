@@ -67,8 +67,10 @@ class PerceptronModel(Module):
         Returns: 1 or -1
         """
         "*** YOUR CODE HERE ***"
-        score = self.run(x)
-        return 1 if self.run(x) >= 0 else -1
+        if self.run(x) >= 0:
+            return 1
+        else:
+            return -1
 
 
 
@@ -87,17 +89,13 @@ class PerceptronModel(Module):
             converged = False
             while not converged:
                 converged = True
-                for sample in dataloader:
-                    x = sample['x']  # Features
-                    label = sample['label']  # True label
-
-                    # Calculate prediction
-                    prediction = self.get_prediction(x)
-
-                    # Update weights if prediction does not match the label
-                    if prediction != label.item():
+                for point in dataloader:
+                    x = point['x']
+                    label = point['label']
+                    predict = self.get_prediction(x)
+                    if predict != label.item():
                         x = x.view(1, -1)
-                        self.w += label * x  # Update weights
+                        self.w += label * x
                         converged = False
 
 
@@ -116,7 +114,7 @@ class RegressionModel(Module):
         self.layer1 = Linear(1, 64)  # Input layer to hidden layer (64 neurons)
         self.layer2 = Linear(64, 64)  # Hidden layer to hidden layer
         self.layer3 = Linear(64, 1)  # Hidden layer to output layer
-        self.relu = ReLU()  # Activation function
+        self.relu = relu  # Activation function
 
 
 
@@ -148,7 +146,7 @@ class RegressionModel(Module):
         """
         "*** YOUR CODE HERE ***"
         predictions = self.forward(x)  # Compute predictions
-        loss = MSELoss()(predictions, y)  # Mean Squared Error loss
+        loss = mse_loss(predictions, y)  # Mean Squared Error loss
         return loss
  
   
@@ -169,7 +167,7 @@ class RegressionModel(Module):
         """
         "*** YOUR CODE HERE ***"
         dataloader = DataLoader(dataset, batch_size=32, shuffle=True)  # Create batches
-        optimizer = Adam(self.parameters(), lr=0.01)  # Optimizer
+        optimizer = optim.Adam(self.parameters(), lr=0.01)  # Optimizer
 
         # Training loop
         for epoch in range(100):  # Train for 100 epochs
@@ -213,6 +211,9 @@ class DigitClassificationModel(Module):
         input_size = 28 * 28
         output_size = 10
         "*** YOUR CODE HERE ***"
+        self.layer1 = Linear(input_size, 128)  # Input to hidden layer
+        self.layer2 = Linear(128, 64)  # Hidden layer to another hidden layer
+        self.output_layer = Linear(64, output_size)  # Hidden layer to output layer
 
 
 
@@ -231,6 +232,10 @@ class DigitClassificationModel(Module):
                 (also called logits)
         """
         """ YOUR CODE HERE """
+        x = relu(self.layer1(x))
+        x = relu(self.layer2(x))
+        logits = self.output_layer(x)  # Output scores (logits)
+        return logits
 
 
     def get_loss(self, x, y):
@@ -247,6 +252,8 @@ class DigitClassificationModel(Module):
         Returns: a loss tensor
         """
         """ YOUR CODE HERE """
+        logits = self.run(x)
+        return cross_entropy(logits, y)  # Cross entropy for classification
 
         
 
@@ -255,3 +262,15 @@ class DigitClassificationModel(Module):
         Trains the model.
         """
         """ YOUR CODE HERE """
+        dataloader = DataLoader(dataset, batch_size=64, shuffle=True)
+        optimizer = optim.Adam(self.parameters(), lr=0.001)
+        for epoch in range(20):  # Train for 20 epochs
+            total_loss = 0.0
+            for batch in dataloader:
+                x = batch['x']
+                y = batch['label']
+                optimizer.zero_grad()
+                loss = self.get_loss(x, y)
+                loss.backward()
+                optimizer.step()
+                total_loss += loss.item()
