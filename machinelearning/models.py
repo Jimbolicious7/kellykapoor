@@ -37,7 +37,7 @@ class PerceptronModel(Module):
         super(PerceptronModel, self).__init__()
         
         "*** YOUR CODE HERE ***"
-        self.w = Parameter(ones(1, dimensions))#Initialize your weights here
+        self.w = Parameter(ones(1, dimensions))
 
     def get_weights(self):
         """
@@ -91,11 +91,11 @@ class PerceptronModel(Module):
                 converged = True
                 for point in dataloader:
                     x = point['x']
-                    label = point['label']
+                    answer = point['label']
                     predict = self.get_prediction(x)
-                    if predict != label.item():
+                    if predict != answer.item():
                         x = x.view(1, -1)
-                        self.w += label * x
+                        self.w += answer * x
                         converged = False
 
 
@@ -111,10 +111,10 @@ class RegressionModel(Module):
         # Initialize your model parameters here
         "*** YOUR CODE HERE ***"
         super().__init__()
-        self.layer1 = Linear(1, 64)  # Input layer to hidden layer (64 neurons)
-        self.layer2 = Linear(64, 64)  # Hidden layer to hidden layer
-        self.layer3 = Linear(64, 1)  # Hidden layer to output layer
-        self.relu = relu  # Activation function
+        self.layer1 = Linear(1, 64)
+        self.layer2 = Linear(64, 64)
+        self.layer3 = Linear(64, 1)
+        self.relu = relu
 
 
 
@@ -128,10 +128,7 @@ class RegressionModel(Module):
             A node with shape (batch_size x 1) containing predicted y-values
         """
         "*** YOUR CODE HERE ***"
-        x = self.relu(self.layer1(x))  # Apply first layer and activation
-        x = self.relu(self.layer2(x))  # Apply second layer and activation
-        x = self.layer3(x)  # Apply third layer (output layer)
-        return x
+        return self.layer3(self.relu(self.layer2(self.relu(self.layer1(x)))))
 
     
     def get_loss(self, x, y):
@@ -145,9 +142,7 @@ class RegressionModel(Module):
         Returns: a tensor of size 1 containing the loss
         """
         "*** YOUR CODE HERE ***"
-        predictions = self.forward(x)  # Compute predictions
-        loss = mse_loss(predictions, y)  # Mean Squared Error loss
-        return loss
+        return mse_loss(self.forward(x), y)
  
   
 
@@ -166,22 +161,21 @@ class RegressionModel(Module):
             
         """
         "*** YOUR CODE HERE ***"
-        dataloader = DataLoader(dataset, batch_size=32, shuffle=True)  # Create batches
-        optimizer = optim.Adam(self.parameters(), lr=0.01)  # Optimizer
+        loader = DataLoader(dataset, batch_size=32, shuffle=True)
+        op = optim.Adam(self.parameters(), lr=0.01)
 
-        # Training loop
-        for epoch in range(100):  # Train for 100 epochs
-            total_loss = 0.0
-            for batch in dataloader:
-                x = batch['x']  # Input features
-                y = batch['label']  # True labels
+        for reps in range(100):
+            maxLoss = 0.0
+            for set in loader:
+                x = set['x']
+                y = set['label']
 
-                optimizer.zero_grad()  # Reset gradients
+                op.zero_grad()  # Reset gradients
                 loss = self.get_loss(x, y)  # Compute loss
                 loss.backward()  # Backpropagation
-                optimizer.step()  # Update model parameters
+                op.step()  # Update model parameters
 
-                total_loss += loss.item()
+                maxLoss += loss.item()
 
             
 
@@ -211,9 +205,9 @@ class DigitClassificationModel(Module):
         input_size = 28 * 28
         output_size = 10
         "*** YOUR CODE HERE ***"
-        self.layer1 = Linear(input_size, 128)  # Input to hidden layer
-        self.layer2 = Linear(128, 64)  # Hidden layer to another hidden layer
-        self.output_layer = Linear(64, output_size)  # Hidden layer to output layer
+        self.layer1 = Linear(input_size, 128)
+        self.layer2 = Linear(128, 64)
+        self.output_layer = Linear(64, output_size)
 
 
 
@@ -232,10 +226,7 @@ class DigitClassificationModel(Module):
                 (also called logits)
         """
         """ YOUR CODE HERE """
-        x = relu(self.layer1(x))
-        x = relu(self.layer2(x))
-        logits = self.output_layer(x)  # Output scores (logits)
-        return logits
+        return self.output_layer(relu(self.layer2(relu(self.layer1(x)))))
 
 
     def get_loss(self, x, y):
@@ -252,8 +243,7 @@ class DigitClassificationModel(Module):
         Returns: a loss tensor
         """
         """ YOUR CODE HERE """
-        logits = self.run(x)
-        return cross_entropy(logits, y)  # Cross entropy for classification
+        return cross_entropy(self.run(x), y)  # Cross entropy for classification
 
         
 
@@ -262,15 +252,15 @@ class DigitClassificationModel(Module):
         Trains the model.
         """
         """ YOUR CODE HERE """
-        dataloader = DataLoader(dataset, batch_size=64, shuffle=True)
-        optimizer = optim.Adam(self.parameters(), lr=0.001)
-        for epoch in range(20):  # Train for 20 epochs
-            total_loss = 0.0
-            for batch in dataloader:
-                x = batch['x']
-                y = batch['label']
-                optimizer.zero_grad()
+        loader = DataLoader(dataset, batch_size=64, shuffle=True)
+        op = optim.Adam(self.parameters(), lr=0.001)
+        for reps in range(20):
+            maxLoss = 0.0
+            for set in loader:
+                x = set['x']
+                y = set['label']
+                op.zero_grad()
                 loss = self.get_loss(x, y)
                 loss.backward()
-                optimizer.step()
-                total_loss += loss.item()
+                op.step()
+                maxLoss += loss.item()
